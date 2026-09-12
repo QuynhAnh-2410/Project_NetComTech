@@ -29,7 +29,26 @@ class SMTPClient:
         self.capabilities = {}
 
     def connect(self):
-        pass
+        import socket
+
+        try:
+            self.socket = socket.create_connection(
+                (self.host, self.port),
+                timeout=self.timeout
+                )
+
+            code, message = self._recv()
+
+            if code != 220:
+                raise SMTPError(code, message)
+
+            return code, message
+
+        except socket.error as e:
+            raise SMTPError(
+                -1,
+                f"Connection failed: {e}"
+                )
 
     def ehlo(self, domain="localhost"):
         pass
@@ -66,7 +85,35 @@ class SMTPClient:
         pass
 
     def _send(self, line):
-        pass
+
+        if self.verbose:
+            print("->", line)
+
+        self.socket.sendall(
+            (line + "\r\n").encode("utf-8")
+        )
 
     def _recv(self):
-        pass
+
+        data = self.socket.recv(4096)
+
+        response = data.decode(
+            "utf-8",
+            errors="replace"
+        )
+
+        if self.verbose:
+            print("<-", response)
+
+        lines = response.splitlines()
+
+        first_line = lines[0]
+
+        code = int(first_line[:3])
+
+        message = "\n".join(
+            line[4:]
+            for line in lines
+        )
+
+        return code, message

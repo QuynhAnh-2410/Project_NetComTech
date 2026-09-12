@@ -51,7 +51,35 @@ class SMTPClient:
                 )
 
     def ehlo(self, domain="localhost"):
-        pass
+
+        self._send(
+            f"EHLO {domain}"
+        )
+
+        code, message = self._recv()
+
+        if code != 250:
+            raise SMTPError(code, message)
+
+        self.capabilities = {}
+
+        for line in message.splitlines():
+
+            parts = line.split()
+
+            if len(parts) == 0:
+                continue
+
+            key = parts[0].upper()
+
+            values = parts[1:]
+
+            if values:
+                self.capabilities[key] = values
+            else:
+                self.capabilities[key] = True
+
+        return self.capabilities
 
     def starttls(self):
         pass

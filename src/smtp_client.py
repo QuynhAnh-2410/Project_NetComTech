@@ -147,14 +147,53 @@ class SMTPClient:
 
         return True
 
-    def mail_from(self, address):
-        pass
+    def mail_from(self, sender):
 
-    def rcpt_to(self, address):
-        pass
+        self._send(
+            f"MAIL FROM:<{sender}>"
+        )
+
+        code, message = self._recv()
+
+        if code != 250:
+            raise SMTPError(code, message)
+
+        return True
+
+    def rcpt_to(self, recipient):
+
+        self._send(
+            f"RCPT TO:<{recipient}>"
+        )
+
+        code, message = self._recv()
+
+        if code != 250:
+            raise SMTPError(code, message)
+
+        return True
 
     def data(self, message):
-        pass
+
+        self._send("DATA")
+
+        code, response = self._recv()
+
+        if code != 354:
+            raise SMTPError(code, response)
+
+
+        self._send(message)
+
+        self._send(".")
+
+
+        code, response = self._recv()
+
+        if code != 250:
+            raise SMTPError(code, response)
+
+        return True
 
     def send_mail(
         self,
@@ -165,7 +204,17 @@ class SMTPClient:
         pass
 
     def quit(self):
-        pass
+
+        self._send("QUIT")
+
+        code, message = self._recv()
+
+        if code != 221:
+            raise SMTPError(code, message)
+
+        self.socket.close()
+
+        return True
 
     def _send(self, line):
 

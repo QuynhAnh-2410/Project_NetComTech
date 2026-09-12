@@ -1,3 +1,6 @@
+import socket
+import ssl
+import base64
 class SMTPError(Exception):
     def __init__(self, code: int, message: str):
         self.code = code
@@ -29,9 +32,6 @@ class SMTPClient:
         self.capabilities = {}
 
     def connect(self):
-        import socket
-        import ssl
-        import base64
 
         try:
             self.socket = socket.create_connection(

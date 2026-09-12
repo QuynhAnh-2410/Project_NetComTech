@@ -30,6 +30,7 @@ class SMTPClient:
 
     def connect(self):
         import socket
+        import ssl
 
         try:
             self.socket = socket.create_connection(
@@ -82,7 +83,22 @@ class SMTPClient:
         return self.capabilities
 
     def starttls(self):
-        pass
+
+        self._send("STARTTLS")
+
+        code, message = self._recv()
+
+        if code != 220:
+            raise SMTPError(code, message)
+
+        context = ssl.create_default_context()
+
+        self.socket = context.wrap_socket(
+            self.socket,
+            server_hostname=self.host
+        )
+
+        self.ehlo()
 
     def auth(
         self,

@@ -31,6 +31,7 @@ class SMTPClient:
     def connect(self):
         import socket
         import ssl
+        import base64
 
         try:
             self.socket = socket.create_connection(
@@ -106,7 +107,45 @@ class SMTPClient:
         password,
         mechanism="LOGIN"
     ):
-        pass
+
+        if mechanism.upper() != "LOGIN":
+            raise SMTPError(
+                -1,
+                "Only AUTH LOGIN is supported"
+            )
+
+        self._send("AUTH LOGIN")
+
+        code, message = self._recv()
+
+        if code != 334:
+            raise SMTPError(code, message)
+
+
+        username_encoded = base64.b64encode(
+            username.encode("utf-8")
+        ).decode("utf-8")
+
+        self._send(username_encoded)
+
+        code, message = self._recv()
+
+        if code != 334:
+            raise SMTPError(code, message)
+
+
+        password_encoded = base64.b64encode(
+            password.encode("utf-8")
+        ).decode("utf-8")
+
+        self._send(password_encoded)
+
+        code, message = self._recv()
+
+        if code != 235:
+            raise SMTPError(code, message)
+
+        return True
 
     def mail_from(self, address):
         pass

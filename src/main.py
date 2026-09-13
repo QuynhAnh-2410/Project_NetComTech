@@ -13,44 +13,18 @@ def main():
     )
 
 
-    client.connect()
+    client.send_mail(
+        sender="lequynhanh24vt@gmail.com",
+        password="wpzaceutqmdnwzdf",
+        recipients=[
+            "leanvy2410@gmail.com"
+        ],
+        message="""Subject: SMTP Client Test
 
-
-    client.ehlo(
-        "localhost"
+    Hello,
+    This email was sent using raw SMTP socket client.
+    """
     )
-
-
-    client.starttls()
-
-
-    client.auth(
-        os.getenv("SMTP_EMAIL"),
-        os.getenv("SMTP_PASSWORD")
-    )
-
-
-    client.mail_from(
-        os.getenv("SMTP_EMAIL")
-    )
-
-    client.rcpt_to(
-        os.getenv("SMTP_RECEIVER")
-    )
-
-
-    message = """\
-Subject: SMTP Client Test
-
-Hello,
-This email was sent using raw SMTP socket client.
-"""
-
-
-    client.data(message)
-
-
-    client.quit()
 
 
 

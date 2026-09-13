@@ -30,6 +30,7 @@ class SMTPClient:
 
         self.socket = None
         self.capabilities = {}
+        self._buffer = b""
 
     def connect(self):
 
@@ -198,10 +199,45 @@ class SMTPClient:
     def send_mail(
         self,
         sender,
+        password,
         recipients,
         message
     ):
-        pass
+
+        result = {}
+
+        try:
+            self.connect()
+
+            self.ehlo()
+
+            if not self.use_ssl:
+                self.starttls()
+                self.ehlo()
+
+            self.auth(
+                sender,
+                password
+            )
+
+            self.mail_from(sender)
+
+            for recipient in recipients:
+                result[recipient] = self.rcpt_to(recipient)
+
+            accepted = [
+                recipient
+                for recipient, ok in result.items()
+                if ok
+            ]
+
+            if accepted:
+                self.data(message)
+
+        finally:
+            self.quit()
+
+        return result
 
     def quit(self):
 
@@ -227,17 +263,40 @@ class SMTPClient:
 
     def _recv(self):
 
-        data = self.socket.recv(4096)
+        while b"\r\n" not in self._buffer:
+            data = self.socket.recv(4096)
 
-        response = data.decode(
-            "utf-8",
-            errors="replace"
-        )
+            if data == b"":
+                raise SMTPError(
+                    -1,
+                    "Connection closed by server"
+                )
 
-        if self.verbose:
-            print("<-", response)
+            self._buffer += data
 
-        lines = response.splitlines()
+
+        lines = []
+
+        while True:
+
+            line, _, remaining = self._buffer.partition(b"\r\n")
+
+            if not _:
+                break
+
+            self._buffer = remaining
+
+            line = line.decode(
+                "utf-8",
+                errors="replace"
+            )
+
+            lines.append(line)
+
+            # đủ một SMTP reply
+            if len(line) >= 4 and line[3] == " ":
+                break
+
 
         first_line = lines[0]
 
@@ -247,5 +306,10 @@ class SMTPClient:
             line[4:]
             for line in lines
         )
+
+
+        if self.verbose:
+            print("<-", "\n".join(lines))
+
 
         return code, message

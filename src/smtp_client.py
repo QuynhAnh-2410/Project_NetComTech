@@ -169,10 +169,7 @@ class SMTPClient:
 
         code, message = self._recv()
 
-        if code != 250:
-            raise SMTPError(code, message)
-
-        return True
+        return code == 250
 
     def data(self, message):
 
@@ -235,7 +232,8 @@ class SMTPClient:
                 self.data(message)
 
         finally:
-            self.quit()
+            if self.socket:
+                self.quit()
 
         return result
 

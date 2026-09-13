@@ -13,11 +13,12 @@ def main():
     )
 
 
-    client.send_mail(
+    result = client.send_mail(
         sender=os.getenv("SMTP_EMAIL"),
         password=os.getenv("SMTP_PASSWORD"),
         recipients=[
-            os.getenv("SMTP_RECEIVER")
+            os.getenv("SMTP_RECEIVER"),
+            os.getenv("SMTP_RECEIVER_TEST")
         ],
         message="""Subject: SMTP Client Test
 
@@ -25,7 +26,7 @@ def main():
     This email was sent using raw SMTP socket client.
     """
     )
-
+    print(result)
 
 
 if __name__ == "__main__":

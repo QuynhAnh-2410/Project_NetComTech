@@ -14,10 +14,10 @@ def main():
 
 
     client.send_mail(
-        sender="lequynhanh24vt@gmail.com",
-        password="wpzaceutqmdnwzdf",
+        sender=os.getenv("SMTP_EMAIL"),
+        password=os.getenv("SMTP_PASSWORD"),
         recipients=[
-            "leanvy2410@gmail.com"
+            os.getenv("SMTP_RECEIVER")
         ],
         message="""Subject: SMTP Client Test
 

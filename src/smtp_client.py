@@ -200,7 +200,11 @@ class SMTPClient:
         recipients,
         message
     ):
+        if not sender:
+            raise ValueError("Missing SMTP email")
 
+        if not password:
+            raise ValueError("Missing SMTP password")
         result = {}
 
         try:

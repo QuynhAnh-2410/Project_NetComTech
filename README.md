@@ -1,16 +1,13 @@
-# SMTP Client
-
-## Features
-- Raw socket SMTP client
-- EHLO
-- STARTTLS
-- AUTH LOGIN
-- MAIL FROM
-- RCPT TO
-- DATA
-- QUIT
+# Raw SMTP Client
 
 ## Setup
+
+python -m venv my_env
+
+pip install -r requirements.txt
+
+
+## Environment
 
 Create .env:
 
@@ -24,9 +21,10 @@ SMTP_RECEIVER=receiver@gmail.com
 python src/main.py
 
 
-## Example output
+## Supported
 
-{
- 'receiver@gmail.com': True,
- 'invalid@gmail.com': False
-}
+- SMTP over STARTTLS (587)
+- SMTP over SSL/TLS (465)
+- AUTH LOGIN
+- Multiple recipients
+- SMTP error handling

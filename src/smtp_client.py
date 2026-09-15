@@ -38,6 +38,15 @@ class SMTPClient:
             self.socket = socket.create_connection(
                 (self.host, self.port),
                 timeout=self.timeout
+            )
+
+
+            if self.use_ssl:
+                context = ssl.create_default_context()
+
+                self.socket = context.wrap_socket(
+                    self.socket,
+                    server_hostname=self.host
                 )
 
             code, message = self._recv()
@@ -181,15 +190,29 @@ class SMTPClient:
             raise SMTPError(code, response)
 
 
-        self._send(message)
+        # SMTP dot-stuffing
+        lines = message.split("\n")
 
-        self._send(".")
+        escaped_lines = []
+
+        for line in lines:
+            if line.startswith("."):
+                line = "." + line
+
+            escaped_lines.append(line)
+
+
+        message = "\r\n".join(escaped_lines)
+
+
+        self._send(message + "\r\n.")
 
 
         code, response = self._recv()
 
         if code != 250:
             raise SMTPError(code, response)
+
 
         return True
 
@@ -263,7 +286,7 @@ class SMTPClient:
             (line + "\r\n").encode("utf-8")
         )
 
-    def _recv(self):
+    def _read_line(self):
 
         while b"\r\n" not in self._buffer:
             data = self.socket.recv(4096)
@@ -277,25 +300,27 @@ class SMTPClient:
             self._buffer += data
 
 
+        line, _, self._buffer = self._buffer.partition(b"\r\n")
+
+        return line.decode(
+            "utf-8",
+            errors="replace"
+        )
+    
+    def _recv(self):
+
         lines = []
 
         while True:
 
-            line, _, remaining = self._buffer.partition(b"\r\n")
-
-            if not _:
-                break
-
-            self._buffer = remaining
-
-            line = line.decode(
-                "utf-8",
-                errors="replace"
-            )
+            line = self._read_line()
 
             lines.append(line)
 
-            # đủ một SMTP reply
+            # SMTP multiline:
+            # 250- nghĩa là còn tiếp
+            # 250  nghĩa là kết thúc
+
             if len(line) >= 4 and line[3] == " ":
                 break
 

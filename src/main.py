@@ -7,8 +7,8 @@ def main():
 
     client = SMTPClient(
         host="smtp.gmail.com",
-        port=587,
-        use_ssl=False,
+        port=465,
+        use_ssl=True,
         verbose=True
     )
 
@@ -20,11 +20,12 @@ def main():
             os.getenv("SMTP_RECEIVER"),
             os.getenv("SMTP_RECEIVER_TEST")
         ],
-        message="""Subject: SMTP Client Test
+        message="""
+Subject: SMTP Client Test
 
-    Hello,
-    This email was sent using raw SMTP socket client.
-    """
+Hello,
+This email was sent using raw SMTP socket client.
+"""
     )
     print(result)
 
